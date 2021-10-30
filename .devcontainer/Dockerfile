@@ -15,6 +15,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 # [Optional] Uncomment the next line to use go get to install anything else you need
 RUN go get -d github.com/kolesa-team/go-webp/webp
 RUN go get -d github.com/kolesa-team/go-webp/encoder
+RUN go get -u github.com/gorilla/mux
 
 # [Optional] Uncomment this line to install global node packages.
 # RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1

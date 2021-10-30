@@ -1,8 +1,9 @@
-package main
+package img
 
 import (
 	"image"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/kolesa-team/go-webp/encoder"
@@ -12,12 +13,12 @@ import (
 	_ "image/png"
 )
 
-func main(){
+func HandleServe(w http.ResponseWriter, r *http.Request) {
 	reader, err := os.Open("images/tangerine-flower.jpg")
 	if err != nil {
-     log.Fatal(err)
-	 }
-	 defer reader.Close()
+		log.Fatal(err)
+	}
+	defer reader.Close()
 
 	m, _, err := image.Decode(reader)
 	if err != nil {
