@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -30,14 +29,14 @@ func HandleUpload(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	// Check if the file type is supported
-	if !checkIfFileTypeIsSupported(handler.Filename) {
+	if !CheckIfFileTypeIsSupported(handler.Filename) {
 		w.WriteHeader(http.StatusUnsupportedMediaType)
 		return
 	}
 
 	// File directory
 	dir := fmt.Sprintf("%s%s", "./images/", id)
-	if err := checkAndCreateDir(dir); err != nil {
+	if err := CheckAndCreateDir(dir); err != nil {
 		log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -62,32 +61,4 @@ func HandleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	targetFile.Write(fileBytes)
-}
-
-// Check if the directory dir exists.
-// If not, it gets created.
-func checkAndCreateDir(dir string) error {
-	_, err := os.Stat(dir)
-	if os.IsNotExist(err) {
-		if err := os.Mkdir(dir, 0777); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// Returns true if file type is supported, otherwise returns false
-func checkIfFileTypeIsSupported(filename string) bool {
-	supportedFileTypes := [4]string{"jpeg", "jpg", "png", "webp"}
-
-	filenameParts := strings.Split(filename, ".")
-	fileType := filenameParts[len(filenameParts)-1]
-
-	for _, x := range supportedFileTypes {
-		if x == fileType {
-			return true
-		}
-	}
-
-	return false
 }
