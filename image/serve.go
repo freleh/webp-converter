@@ -1,42 +1,100 @@
 package img
 
 import (
+	"fmt"
 	"image"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/gorilla/mux"
+	"github.com/kolesa-team/go-webp/decoder"
 	"github.com/kolesa-team/go-webp/encoder"
 	"github.com/kolesa-team/go-webp/webp"
 
-	_ "image/jpeg"
-	_ "image/png"
+	jpeg "image/jpeg"
+	png "image/png"
 )
 
 func HandleServe(w http.ResponseWriter, r *http.Request) {
-	reader, err := os.Open("images/tangerine-flower.jpg")
+	// Read ID
+	vars := mux.Vars(r)
+	id := vars["id"]
+	name, targetType := GetFilenameParts(vars["filename"])
+
+	fullFilePath, err := FileExists(fmt.Sprintf("./images/%s/%s", id, name))
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	reader, err := os.Open(fullFilePath)
+	if err != nil {
+		log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	defer reader.Close()
 
-	m, _, err := image.Decode(reader)
-	if err != nil {
-		log.Fatal(err)
+	var m image.Image
+	_, sourceType := GetFilenameParts(fullFilePath)
+
+	if sourceType == targetType {
+		http.ServeFile(w, r, fullFilePath)
+		return
 	}
 
-	f, err := os.Create("images/tangerine-flower.webp")
-	if err != nil {
-		log.Fatal(err)
+	if sourceType == "webp" {
+		m, err = webp.Decode(reader, &decoder.Options{})
+		if err != nil {
+			log.Print(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	} else {
+		m, _, err = image.Decode(reader)
+		if err != nil {
+			log.Print(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}
-	defer f.Close()
 
-	options, err := encoder.NewLossyEncoderOptions(encoder.PresetDefault, 75)
+	f, err := os.CreateTemp("", fmt.Sprintf("*%s.%s", name, targetType))
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer os.Remove(f.Name())
+
+	if targetType == "webp" {
+		options, err := encoder.NewLossyEncoderOptions(encoder.PresetDefault, 75)
+		if err != nil {
+			log.Print(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if err := webp.Encode(f, m, options); err != nil {
+			log.Print(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	} else if targetType == "jpeg" || targetType == "jpg" {
+		if err := jpeg.Encode(f, m, &jpeg.Options{}); err != nil {
+			log.Print(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	} else if targetType == "png" {
+		if err := png.Encode(f, m); err != nil {
+			log.Print(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}
 
-	if err := webp.Encode(f, m, options); err != nil {
-		log.Fatalln(err)
-	}
+	http.ServeFile(w, r, f.Name())
 }

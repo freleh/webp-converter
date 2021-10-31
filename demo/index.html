@@ -7,13 +7,55 @@
     <title>Document</title>
   </head>
   <body>
-    <form
-      enctype="multipart/form-data"
-      action="http://localhost:8000/image/upload/32327"
-      method="post"
-    >
-      <input type="file" name="image" />
-      <input type="submit" value="upload" />
-    </form>
+
+    <div>
+        <label for='imageId'>Id</label>
+        <input type='text' id='imageId' name='imageId' />
+    </div>
+    <div>
+        <label for='image'>Select image</label>
+        <input type="file" id="image" name="image" />
+    </div>
+    <div>
+        <button id="upload">Upload</button>
+    </div>
+
+    <div id='result'>
+        <h4>Webp</h4>
+        <img alt="Webp">
+        <h4>Jpeg</h4>
+        <img alt="Jpeg">
+        <h4>Png</h4>
+        <img alt="Png">
+    </div>
+
+    <script type='text/javascript'>
+        document.getElementById('upload').addEventListener('click', (values) => {
+            let id = document.getElementById('imageId').value
+            let file = document.getElementById('image').files[0];
+            let ajax = new XMLHttpRequest;
+
+            let formData = new FormData;
+            formData.append('image', file);
+
+            ajax.open('POST', `/image/upload/${id}`, true);
+            ajax.send(formData);
+
+            let fileNameJunks = file.name.split('.')
+            fileNameJunks.pop()
+            let fileName = fileNameJunks.join('.')
+
+            document.getElementById('result').style.display = 'block'
+            document.querySelector('img[alt="Webp"]').setAttribute('src', `http://localhost:8000/image/serve/${id}/${fileName}.webp`)
+            document.querySelector('img[alt="Jpeg"]').setAttribute('src', `http://localhost:8000/image/serve/${id}/${fileName}.jpeg`)
+            document.querySelector('img[alt="Png"]').setAttribute('src', `http://localhost:8000/image/serve/${id}/${fileName}.png`)
+        })
+    </script>
+
+    <style>
+        #result {
+            display: none;
+        }
+    </style>
   </body>
 </html>

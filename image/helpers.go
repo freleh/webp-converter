@@ -1,12 +1,14 @@
 package img
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"strings"
 )
 
 const (
-	supportedFileTypes = "jpeg|jpg|png|webp"
+	SupportedFileTypes = "jpeg|jpg|png|webp"
 )
 
 // Check if the directory dir exists.
@@ -22,10 +24,9 @@ func CheckAndCreateDir(dir string) error {
 
 // Returns true if file type is supported, otherwise returns false
 func CheckIfFileTypeIsSupported(filename string) bool {
-	filenameParts := strings.Split(filename, ".")
-	fileType := filenameParts[len(filenameParts)-1]
+	_, fileType := GetFilenameParts(filename)
 
-	fileTypes := strings.Split(supportedFileTypes, "|")
+	fileTypes := strings.Split(SupportedFileTypes, "|")
 	for _, x := range fileTypes {
 		if x == fileType {
 			return true
@@ -33,4 +34,25 @@ func CheckIfFileTypeIsSupported(filename string) bool {
 	}
 
 	return false
+}
+
+// Split filename into name and type
+func GetFilenameParts(filename string) (name string, fileType string) {
+	filenameParts := strings.Split(filename, ".")
+	return strings.Join(filenameParts[:len(filenameParts)-1], "."), filenameParts[len(filenameParts)-1]
+}
+
+// Check if file exists
+func FileExists(name string) (string, error) {
+	fileTypes := strings.Split(SupportedFileTypes, "|")
+
+	for _, x := range fileTypes {
+		searchFile := fmt.Sprintf("%s.%s", name, x)
+		_, err := os.Stat(searchFile)
+		if !errors.Is(err, os.ErrNotExist) {
+			return searchFile, nil
+		}
+	}
+
+	return "", fmt.Errorf("file %s not found", name)
 }
