@@ -25,6 +25,8 @@
         <img alt="Webp">
         <h4>Jpeg</h4>
         <img alt="Jpeg">
+        <h4>Jpg</h4>
+        <img alt="Jpg">
         <h4>Png</h4>
         <img alt="Png">
     </div>
@@ -48,6 +50,7 @@
             document.getElementById('result').style.display = 'block'
             document.querySelector('img[alt="Webp"]').setAttribute('src', `http://localhost:8000/image/serve/${id}/${fileName}.webp`)
             document.querySelector('img[alt="Jpeg"]').setAttribute('src', `http://localhost:8000/image/serve/${id}/${fileName}.jpeg`)
+            document.querySelector('img[alt="Jpg"]').setAttribute('src', `http://localhost:8000/image/serve/${id}/${fileName}.jpg`)
             document.querySelector('img[alt="Png"]').setAttribute('src', `http://localhost:8000/image/serve/${id}/${fileName}.png`)
         })
     </script>
